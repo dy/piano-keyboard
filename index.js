@@ -41,6 +41,8 @@ function Keyboard (options) {
 	selection.disable(self.element);
 	self.element.classList.add('piano-keyboard');
 
+	self.element.classList.add('piano-keyboard-' + self.orientation);
+
 	if (!self.context) {
 		self.context = require('audio-context');
 	}
@@ -100,12 +102,14 @@ proto.numberOfKeys = 61;
 
 
 /** First key in a keyboard */
-proto.firstKey = 'C2';
+proto.firstKey = 'C1';
 
 
 /** Bind keyboard */
-proto.keyboard = false;
+proto.keyboardEvents = false;
 
+/** Orientation */
+proto.orientation = 'horizontal';
 
 /** Bind events */
 proto.enable = function () {
@@ -113,16 +117,17 @@ proto.enable = function () {
 
 	self.element.removeAttribute('disabled');
 
-	on(self.element, 'mousedown.' + self.id + ' touchstart' + self.id, function (e) {
-
+	on(self.element, 'mousedown.' + self.id + ' touchstart.' + self.id, function (e) {
 		self.noteOn(e.target);
 
+		/*
 		on(self.element, 'mouseover.' + self.id, function (e) {
 			self.noteOn(e.target);
 		});
 		on(self.element, 'mouseout.' + self.id, function (e) {
 			self.noteOff();
 		});
+	*/
 
 		on(doc, 'mouseup.' + self.id + ' mouseleave.' + self.id + ' touchend.' + self.id, function (e) {
 
@@ -134,12 +139,62 @@ proto.enable = function () {
 		});
 	});
 
+	if (self.keyboardEvents) {
+		delegate(self.element, 'keydown', '[data-key]', function (e) {
+			// if (e.which ===)
+			// console.log(e.which)
+			var keyEl = e.delegateTarget;
+			var note = self.parseNote(keyEl);
+
+			if (note === undefined) {
+				return;
+			}
+
+			//space instantly presses the note
+			if (e.which === 32) {
+				self.noteOn(note);
+			}
+
+			//arrows moves key left/right
+			if (e.which === 39) {
+				var nextEl = keyEl.nextSibling;
+				if (!nextEl) {
+					return;
+				}
+				nextEl.focus();
+			}
+			if (e.which === 37) {
+				var nextEl = keyEl.previousSibling;
+				if (!nextEl) {
+					return;
+				}
+				nextEl.focus();
+			}
+
+
+			//tab or shift + arrow moves for an octave
+		});
+		delegate(self.element, 'keyup', '[data-key]', function (e) {
+			var keyEl = e.delegateTarget;
+			var note = self.parseNote(keyEl);
+
+			if (note === undefined) {
+				return;
+			}
+
+			//space instantly stops note
+			if (e.which === 32) {
+				self.noteOff(note);
+			}
+		});
+	}
+
 	return self;
 };
 
 
 /** Parse note number from any arg */
-function parseNote (note) {
+proto.parseNote = function (note) {
 	if (isString(note)) {
 		return key.getNumber(note);
 	}
@@ -168,7 +223,7 @@ proto.noteOn = function noteOn (note) {
 		return self;
 	}
 
-	note = parseNote(note);
+	note = self.parseNote(note);
 
 	if (note === undefined) {
 		return self;
@@ -199,7 +254,7 @@ proto.noteOff = function noteOff (note) {
 		return self;
 	}
 
-	note = parseNote(note);
+	note = self.parseNote(note);
 
 	if (note === undefined) {
 		return self;

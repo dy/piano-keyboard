@@ -1,0 +1,102 @@
+<!doctype html>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="Piano keyboard">
+<meta name="keyword" content="Piano, keyboard">
+<meta name="author" content="Deema Ywanov" />
+<meta name="copyright" content="© 2015 Dmitry Ivanov" />
+<meta name="contact" content="df.creative@gmail.com" />
+<meta http-equiv="content-language" content="en" />
+
+<link rel="stylesheet" type="text/css" href="./index.css"/>
+
+<style>
+	html, body {
+		padding: 0;
+		margin: 0;
+		position: relative;
+		height: 100%;
+		/*overflow: hidden;*/
+	}
+	.keyboard {
+		height: 100%;
+		width: 100%;
+	}
+
+	.start-button {
+		background: rgba(255,255,255,.6);
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		margin: 0;
+		padding: 0;
+		width: 100%;
+		border: 0;
+		text-align: center;
+		z-index: 999;
+		font-size: 4rem;
+	}
+</style>
+
+<button class="start-button">▶</button>
+
+<div class="keyboard"></div>
+
+<script src="bundle.js"></script>
+
+<script type="text/javascript">
+
+var context = require('audio-context');
+var Keyboard = require('piano-keyboard');
+var key = require('piano-key');
+
+
+var attack=0.05;      // attack speed
+var release=0.05;   // release speed
+var portamento=0.05;  // portamento/glide speed
+
+//create oscillator
+var oscillator = context.createOscillator();
+oscillator.frequency.setValueAtTime(110, 0);
+envelope = context.createGain();
+oscillator.connect(envelope);
+envelope.connect(context.destination);
+envelope.gain.value = 0.0;  // Mute the sound
+
+//create keyboard
+var kbdEl = document.querySelector('.keyboard');
+var keyboard = new Keyboard({
+	element: kbdEl,
+	numberOfKeys: 12,
+	firstKey: 'c4',
+	keyboardEvents: true,
+	orientation: 'vertical'
+});
+keyboard.on('noteon', function (data) {
+	oscillator.frequency.cancelScheduledValues(0);
+	oscillator.frequency.setTargetAtTime( key.getFrequency(data.which), 0, portamento );
+	envelope.gain.cancelScheduledValues(0);
+	envelope.gain.setTargetAtTime(1.0, 0, attack);
+});
+keyboard.on('noteoff', function (data) {
+	envelope.gain.cancelScheduledValues(0);
+	envelope.gain.setTargetAtTime(0.0, 0, release );
+});
+
+
+
+// create empty buffer
+var startButton = document.querySelector('.start-button');
+
+
+startButton.addEventListener('click', function c() {
+	startButton.removeEventListener('click', c);
+	startButton.parentNode.removeChild(startButton);
+
+	oscillator.start(0);  // Go ahead and start up the oscillator
+}, false);
+</script>
