@@ -26,7 +26,7 @@
 	}
 
 	.start-button {
-		background: rgba(255,255,255,.6);
+		background: rgba(255,255,255,.92);
 		position: absolute;
 		top: 0;
 		left: 0;
@@ -38,11 +38,12 @@
 		border: 0;
 		text-align: center;
 		z-index: 999;
-		font-size: 4rem;
+		font-size: 12rem;
+		text-shadow: 0 1px 2rem white;
 	}
 </style>
 
-<button class="start-button">▶</button>
+<button class="start-button">▸</button>
 
 <div class="keyboard"></div>
 
@@ -60,12 +61,33 @@ var release=0.05;   // release speed
 var portamento=0.05;  // portamento/glide speed
 
 //create oscillator
-var oscillator = context.createOscillator();
-oscillator.frequency.setValueAtTime(110, 0);
-envelope = context.createGain();
-oscillator.connect(envelope);
-envelope.connect(context.destination);
-envelope.gain.value = 0.0;  // Mute the sound
+function createOscillator () {
+	var oscillator = context.createOscillator();
+	oscillator.frequency.setValueAtTime(110, 0);
+
+	var envelope = context.createGain();
+	oscillator.connect(envelope);
+	envelope.connect(context.destination);
+	envelope.gain.value = 0.0;  // Mute the sound
+
+	return [oscillator, envelope];
+}
+
+var generators = [1,2,3].map(createOscillator);
+var genMap = {};
+
+var x = 0;
+function getGenerator(id) {
+	if (genMap[id] !== undefined) {
+		return generators[genMap[id]];
+	}
+
+	//save gen id for touch id
+	genMap[id] = x;
+	x = (x + 1) % generators.length;
+
+	return generators[genMap[id]];
+}
 
 //create keyboard
 var kbdEl = document.querySelector('.keyboard');
@@ -76,15 +98,20 @@ var keyboard = new Keyboard({
 	keyboardEvents: true,
 	orientation: 'vertical'
 });
+var xon;
 keyboard.on('noteon', function (data) {
-	oscillator.frequency.cancelScheduledValues(0);
-	oscillator.frequency.setTargetAtTime( key.getFrequency(data.which), 0, portamento );
-	envelope.gain.cancelScheduledValues(0);
-	envelope.gain.setTargetAtTime(1.0, 0, attack);
+	// alert('on' + data.touch)
+	xon = data.touch
+	var gen =  getGenerator(data.touch);
+	gen[0].frequency.cancelScheduledValues(0);
+	gen[0].frequency.setTargetAtTime( key.getFrequency(data.which), 0, portamento );
+	gen[1].gain.cancelScheduledValues(0);
+	gen[1].gain.setTargetAtTime(0.2, 0, attack);
 });
 keyboard.on('noteoff', function (data) {
-	envelope.gain.cancelScheduledValues(0);
-	envelope.gain.setTargetAtTime(0.0, 0, release );
+	var gen = getGenerator(data.touch);
+	gen[1].gain.cancelScheduledValues(0);
+	gen[1].gain.setTargetAtTime(0.0, 0, release );
 });
 
 
@@ -97,6 +124,8 @@ startButton.addEventListener('click', function c() {
 	startButton.removeEventListener('click', c);
 	startButton.parentNode.removeChild(startButton);
 
-	oscillator.start(0);  // Go ahead and start up the oscillator
+	generators.forEach(function (g) {
+		g[0].start(0);  // Go ahead and start up the oscillator
+	});
 }, false);
 </script>
