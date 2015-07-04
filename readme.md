@@ -6,12 +6,25 @@ Visualize keyboard component in DOM. Just an element and events, nothing more.
 ```js
 var Keyboard = require('piano-keyboard');
 
+//init options
 var keyboad = new Keyboard({
 	element: document.querySelector('.my-piano'),
 	context: audioContext,
 	keyboardEvents: true,
 	firstKey: 'c1',
 	numberOfKeys: 61,
-	orientation: 'horizontal'
+	orientation: 'vertical'
 });
+
+//bind events
+keyboard
+	.on('noteon', function (data) {
+		console.log(data.which, data.volume);
+	})
+	.on('noteoff', function (data) {
+		console.log(data.which, data.volume);
+	});
+
+//pipe to web-midi output (WIP)
+keyboard.pipe(midiOut);
 ```
