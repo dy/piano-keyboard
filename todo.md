@@ -1,3 +1,4 @@
+* Sometimes key(s) does not turn off (twi-finger simultaneous tapping)
 * track active keys
 * make ctrl use continuous pitch
 * make continuous pitch range

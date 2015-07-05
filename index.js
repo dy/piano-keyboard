@@ -20,6 +20,7 @@ var selection = require('mucss/selection');
 var css = require('mucss/css');
 var isBetween = require('mumath/is-between');
 var getClientCoords = require('get-client-xy');
+var findTouch = getClientCoords.findTouch;
 
 
 /**
@@ -155,6 +156,7 @@ proto.enable = function () {
 			e.preventDefault();
 
 			var clientXY = getClientCoords(e, touchId);
+			var keyEl;
 
 			//first - check whether key is still active
 			if (self.touches[touchId]) {
@@ -164,54 +166,61 @@ proto.enable = function () {
 					self.touches[touchId] = null;
 					if (!isTouched(offTarget)) {
 						self.noteOff(offTarget, touchId);
-						findActiveKeys(clientXY);
+						if (keyEl = findActiveKeys(clientXY)) {
+							self.touches[touchId] = keyEl;
+							self.noteOn(keyEl, touchId);
+						}
 					}
 				}
 			}
 			else {
-				findActiveKeys(clientXY);
+				if (keyEl = findActiveKeys(clientXY)) {
+					self.touches[touchId] = keyEl;
+					self.noteOn(keyEl, touchId);
+				}
 			}
 
 		});
 
 		on(doc, 'mouseup.' + eventId + ' mouseleave.' + eventId + ' touchend.' + eventId, function (e) {
-			if (e.changedTouches) {
-				if (e.changedTouches[0].identifier !== touchId) {
-					return;
-				}
-			}
-
-			off(doc, '.' + eventId);
-
-			// if other touches are pointing to the key
-			var offTarget = self.touches[touchId];
-			self.touches[touchId] = null;
-
-			if (!isTouched(offTarget)) {
-				self.noteOff(offTarget, touchId);
-			}
+			[].slice.call(e.changedTouches || [0]).forEach(forgetTouch);
 		});
-
-		//check whether el is touched by someone else
-		function isTouched (el) {
-			for (var id in self.touches) {
-				if (self.touches[id] === el) return true;
-			}
-			return false;
-		}
-
-		function findActiveKeys (clientXY) {
-			//find a new key, if possible
-			for (var i = 0; i < keys.length; i++) {
-				var rect = keys[i].getBoundingClientRect();
-				if (isBetween(clientXY[0], rect.left, rect.right) && isBetween(clientXY[1], rect.top, rect.bottom)) {
-					self.touches[touchId] = keys[i];
-					self.noteOn(keys[i], touchId);
-					return;
-				}
-			}
-		}
 	});
+
+
+	function forgetTouch (touchId) {
+		if (touchId.identifier !== undefined) {
+			touchId = touchId.identifier;
+		}
+
+		off(doc, '.' + self.id + '-' + touchId);
+
+		// if other touches are pointing to the key
+		var offTarget = self.touches[touchId];
+		self.touches[touchId] = null;
+		if (!isTouched(offTarget)) {
+			self.noteOff(offTarget, touchId);
+		}
+	}
+
+	//check whether el is touched by someone else
+	function isTouched (el) {
+		for (var id in self.touches) {
+			if (self.touches[id] === el) return true;
+		}
+		return false;
+	}
+
+	function findActiveKeys (clientXY) {
+		//find a new key, if possible
+		for (var i = 0; i < keys.length; i++) {
+			var rect = keys[i].getBoundingClientRect();
+			if (isBetween(clientXY[0], rect.left, rect.right) && isBetween(clientXY[1], rect.top, rect.bottom)) {
+				return keys[i];
+			}
+		}
+	}
+
 
 	if (self.keyboardEvents) {
 		delegate(self.element, 'keydown', '[data-key]', function (e) {

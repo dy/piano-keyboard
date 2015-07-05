@@ -98,20 +98,25 @@ var keyboard = new Keyboard({
 	keyboardEvents: true,
 	orientation: 'vertical'
 });
-var xon;
 keyboard.on('noteon', function (data) {
-	// alert('on' + data.touch)
-	xon = data.touch
-	var gen =  getGenerator(data.touch);
-	gen[0].frequency.cancelScheduledValues(0);
-	gen[0].frequency.setTargetAtTime( key.getFrequency(data.which), 0, portamento );
-	gen[1].gain.cancelScheduledValues(0);
-	gen[1].gain.setTargetAtTime(0.2, 0, attack);
+	try {
+		var gen =  getGenerator(data.which);
+		gen[0].frequency.cancelScheduledValues(0);
+		gen[0].frequency.setTargetAtTime( key.getFrequency(data.which), 0, portamento );
+		gen[1].gain.cancelScheduledValues(0);
+		gen[1].gain.setTargetAtTime(0.2, 0, attack);
+	} catch (e) {
+		alert(e);
+	}
 });
 keyboard.on('noteoff', function (data) {
-	var gen = getGenerator(data.touch);
-	gen[1].gain.cancelScheduledValues(0);
-	gen[1].gain.setTargetAtTime(0.0, 0, release );
+	try {
+		var gen = getGenerator(data.which);
+		gen[1].gain.cancelScheduledValues(0);
+		gen[1].gain.setTargetAtTime(0.0, 0, release );
+	} catch (e) {
+		alert(e);
+	}
 });
 
 
