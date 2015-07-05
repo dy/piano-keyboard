@@ -146,7 +146,7 @@ proto.enable = function () {
 	//key element per event
 	on(self.element, 'mousedown.' + self.id + ' touchstart.' + self.id, function (e) {
 		e.preventDefault();
-		updateKeys(e.touches || 0, e);
+		updateKeys(e.touches || [0], e);
 
 		//don’t bind more than once
 		if (self.isActive) {
@@ -156,7 +156,7 @@ proto.enable = function () {
 
 		on(doc, 'mousemove.' + self.id, function (e) {
 			e.preventDefault();
-			updateKeys(0, e);
+			updateKeys([0], e);
 		});
 		on(doc, 'touchmove.' + self.id, function (e) {
 			e.preventDefault();
@@ -164,20 +164,21 @@ proto.enable = function () {
 		});
 		on(doc, 'mouseup.' + self.id + ' mouseleave.' + self.id, function (e) {
 			e.preventDefault();
-			updateKeys(0, e);
+			updateKeys([]);
 		});
 		on(doc, 'touchend.' + self.id, function (e) {
 			e.preventDefault();
-			updateKeys(e.changedTouches, e);
+			// updateKeys(e.changedTouches, e);
 			updateKeys(e.touches, e);
 		});
 	});
 
 	on(window, 'blur', function (e) {
-		self.noteOff();
+		updateKeys([], e);
 	});
 
 	//just walk the list of touches, for each touch activate the key
+	//pass empty touches list to unbind all
 	function updateKeys (touches, e) {
 		touches = slice(touches);
 
@@ -185,7 +186,7 @@ proto.enable = function () {
 		var bindKeys = [];
 		var blackTouches = [];
 
-		//find keys need to be turned on
+		//for all keys - find ones to turn on and ones to turn off
 		for (var i = 0; i < keys.length; i++) {
 			touches.forEach(function (touchId) {
 				if (touchId.identifier !== undefined) {
@@ -202,7 +203,6 @@ proto.enable = function () {
 				}
 
 				if (isBetween(clientXY[0], rects[i].left, rects[i].right) && isBetween(clientXY[1], rects[i].top, rects[i].bottom)) {
-					// log(clientXY)
 					if (blackTouches.indexOf(touchId) >= 0) {
 						return;
 					}

@@ -1,4 +1,3 @@
-* track active keys
 * make ctrl use continuous pitch
 * make continuous pitch range
 * vertical orientation
