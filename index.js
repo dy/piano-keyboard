@@ -21,6 +21,7 @@ var css = require('mucss/css');
 var isBetween = require('mumath/is-between');
 var getClientCoords = require('get-client-xy');
 var findTouch = getClientCoords.findTouch;
+var slice = require('sliced');
 
 
 /**
@@ -131,99 +132,107 @@ proto.enable = function () {
 
 	self.element.removeAttribute('disabled');
 
-	//active touches indexes as keys and elements as values
-	self.touches = {};
-
 	//specially sorted array of keys (blacks first)
-	var keys = [].slice.call(self.element.childNodes).sort(function (a, b) {
+	var keys = slice(self.element.childNodes).sort(function (a, b) {
 		if (a.hasAttribute('data-key-black')) return -1;
 		return 1;
+	});
+
+	//save bounding rects
+	var rects = keys.map(function (el) {
+		return el.getBoundingClientRect();
 	});
 
 	//key element per event
 	on(self.element, 'mousedown.' + self.id + ' touchstart.' + self.id, function (e) {
 		e.preventDefault();
+		updateKeys(e.touches || 0, e);
 
-		//save touch id
-		var touchId = e.changedTouches ? e.changedTouches[0].identifier : 0;
-		var eventId = self.id + '-' + touchId;
+		//don’t bind more than once
+		if (self.isActive) {
+			return;
+		}
+		self.isActive = true;
 
-		self.touches[touchId] = e.target;
-		self.noteOn(e.target, touchId);
-
-		//each touchmove detects closest key and triggers it
-		on(doc, 'mousemove.' + eventId + ' touchmove.' + eventId, function (e) {
+		on(doc, 'mousemove.' + self.id, function (e) {
 			e.preventDefault();
+			updateKeys(0, e);
+		});
+		on(doc, 'touchmove.' + self.id, function (e) {
+			e.preventDefault();
+			updateKeys(e.touches, e);
+		});
+		on(doc, 'mouseup.' + self.id + ' mouseleave.' + self.id, function (e) {
+			e.preventDefault();
+			updateKeys(0, e);
+		});
+		on(doc, 'touchend.' + self.id, function (e) {
+			e.preventDefault();
+			updateKeys(e.changedTouches, e);
+			updateKeys(e.touches, e);
+		});
+	});
 
-			var clientXY = getClientCoords(e, touchId);
-			var keyEl;
+	on(window, 'blur', function (e) {
+		self.noteOff();
+	});
 
-			//first - check whether key is still active
-			if (self.touches[touchId]) {
-				var rect = self.touches[touchId].getBoundingClientRect();
-				if (!isBetween(clientXY[0], rect.left, rect.right) || !isBetween(clientXY[1], rect.top, rect.bottom)) {
-					var offTarget = self.touches[touchId];
-					self.touches[touchId] = null;
-					if (!isTouched(offTarget)) {
-						self.noteOff(offTarget, touchId);
-						if (keyEl = findActiveKeys(clientXY)) {
-							self.touches[touchId] = keyEl;
-							self.noteOn(keyEl, touchId);
+	//just walk the list of touches, for each touch activate the key
+	function updateKeys (touches, e) {
+		touches = slice(touches);
+
+		var unbindKeys = slice(self.activeKeys);
+		var bindKeys = [];
+		var blackTouches = [];
+
+		//find keys need to be turned on
+		for (var i = 0; i < keys.length; i++) {
+			touches.forEach(function (touchId) {
+				if (touchId.identifier !== undefined) {
+					touchId = touchId.identifier;
+				};
+
+				var touch = findTouch(touches, touchId);
+				var clientXY;
+				if (touch) {
+					clientXY = [touch.clientX, touch.clientY]
+				}
+				else {
+					clientXY = [e.clientX, e.clientY]
+				}
+
+				if (isBetween(clientXY[0], rects[i].left, rects[i].right) && isBetween(clientXY[1], rects[i].top, rects[i].bottom)) {
+					// log(clientXY)
+					if (blackTouches.indexOf(touchId) >= 0) {
+						return;
+					}
+
+					//add to binds & reserve touch to avoid double-note pressing
+					if (bindKeys.indexOf(keys[i]) < 0) {
+						bindKeys.push(keys[i]);
+						if (keys[i].hasAttribute('data-key-black')) {
+							blackTouches.push(touchId);
 						}
 					}
+
+					//remove from unbinds
+					var unbindIdx = unbindKeys.indexOf(keys[i]);
+					if (unbindIdx >= 0) {
+						unbindKeys.splice(unbindIdx, 1);
+					}
+
 				}
-			}
-			else {
-				if (keyEl = findActiveKeys(clientXY)) {
-					self.touches[touchId] = keyEl;
-					self.noteOn(keyEl, touchId);
-				}
-			}
-
-		});
-
-		on(doc, 'mouseup.' + eventId + ' mouseleave.' + eventId + ' touchend.' + eventId, function (e) {
-			[].slice.call(e.changedTouches || [0]).forEach(forgetTouch);
-		});
-	});
-
-	on(window, 'blur', function () {
-		for (var id in self.touches) {
-			forgetTouch(id);
-		}
-	});
-
-
-	function forgetTouch (touchId) {
-		if (touchId.identifier !== undefined) {
-			touchId = touchId.identifier;
+			});
 		}
 
-		off(doc, '.' + self.id + '-' + touchId);
+		//unbind/bind keys
+		unbindKeys.forEach(self.noteOff, self);
+		bindKeys.forEach(self.noteOn, self);
 
-		// if other touches are pointing to the key
-		var offTarget = self.touches[touchId];
-		self.touches[touchId] = null;
-		if (!isTouched(offTarget)) {
-			self.noteOff(offTarget, touchId);
-		}
-	}
-
-	//check whether el is touched by someone else
-	function isTouched (el) {
-		for (var id in self.touches) {
-			if (self.touches[id] === el) return true;
-		}
-		return false;
-	}
-
-	function findActiveKeys (clientXY) {
-		//find a new key, if possible
-		for (var i = 0; i < keys.length; i++) {
-			var rect = keys[i].getBoundingClientRect();
-			if (isBetween(clientXY[0], rect.left, rect.right) && isBetween(clientXY[1], rect.top, rect.bottom)) {
-				return keys[i];
-			}
+		//check whether there are left keys
+		if (!self.activeKeys.length) {
+			self.isActive = false;
+			off(doc, '.' + self.id);
 		}
 	}
 
@@ -303,11 +312,11 @@ proto.parseNote = function (note) {
 
 
 /** Set active note */
-proto.noteOn = function noteOn (note, touchId) {
+proto.noteOn = function noteOn (note) {
 	var self = this;
 
 	if (isArray(note)) {
-		[].slice.call(note).forEach(noteOn, self);
+		slice(note).forEach(noteOn, self);
 		return self;
 	}
 
@@ -320,15 +329,17 @@ proto.noteOn = function noteOn (note, touchId) {
 	var keyEl = self.element.querySelector('[data-key="' + note + '"]');
 
 	//don’t trigger twice
-	if (keyEl.hasAttribute('data-key-active')) {
+	if (self.activeKeys.indexOf(keyEl) >= 0) {
 		return self;
 	}
+
+	//save active key
+	self.activeKeys.push(keyEl);
 
 	//send on note
 	emit(self, 'noteon', {
 		which: note,
-		value: 127,
-		touch: touchId
+		value: 127
 	});
 
 	keyEl.classList.add('active');
@@ -339,12 +350,12 @@ proto.noteOn = function noteOn (note, touchId) {
 
 
 /** Disable note or all notes */
-proto.noteOff = function noteOff (note, touchId) {
+proto.noteOff = function noteOff (note) {
 	var self = this, keyEl;
 
 	//disable all active notes
 	if (note === undefined) {
-		[].slice.call(self.element.querySelectorAll('[data-key-active]')).forEach(noteOff, self);
+		slice(self.activeKeys).forEach(noteOff, self);
 		return self;
 	}
 
@@ -356,16 +367,19 @@ proto.noteOff = function noteOff (note, touchId) {
 
 	var keyEl = self.element.querySelector('[data-key="' + note + '"]');
 
-	//don’t trigger twice
-	if (!keyEl.hasAttribute('data-key-active')) {
+	//save active key
+	var keyIdx = self.activeKeys.indexOf(keyEl);
+	if (keyIdx < 0) {
 		return self;
 	}
+
+	//forget key
+	self.activeKeys.splice(keyIdx, 1);
 
 	//send off note
 	emit(self, 'noteoff', {
 		which: note,
-		value: 0,
-		touch: touchId
+		value: 0
 	});
 
 	keyEl.classList.remove('active');

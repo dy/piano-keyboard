@@ -20,6 +20,7 @@ var keyboad = new Keyboard({
 keyboard
 	.on('noteon', function (data) {
 		console.log(data.which, data.volume);
+		this.activeKeys; //list of active keys
 	})
 	.on('noteoff', function (data) {
 		console.log(data.which, data.volume);

@@ -41,8 +41,17 @@
 		font-size: 12rem;
 		text-shadow: 0 1px 2rem white;
 	}
+
+	.console {
+		z-index: 999;
+		position: absolute;
+		background: white;
+		top: 0;
+		right: 0;
+	}
 </style>
 
+<div class="console"></div>
 <button class="start-button">▸</button>
 
 <div class="keyboard"></div>
@@ -54,6 +63,11 @@
 var context = require('audio-context');
 var Keyboard = require('piano-keyboard');
 var key = require('piano-key');
+
+var consoleEl = document.querySelector('.console');
+function log (content) {
+	consoleEl.innerHTML = content;
+}
 
 
 var attack=0.05;      // attack speed
