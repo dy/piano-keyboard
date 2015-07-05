@@ -187,6 +187,12 @@ proto.enable = function () {
 		});
 	});
 
+	on(window, 'blur', function () {
+		for (var id in self.touches) {
+			forgetTouch(id);
+		}
+	});
+
 
 	function forgetTouch (touchId) {
 		if (touchId.identifier !== undefined) {
