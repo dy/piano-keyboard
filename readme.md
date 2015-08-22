@@ -1,4 +1,4 @@
-Visualize keyboard component in DOM. Just an element and events, nothing more.
+Visualize piano in DOM. [Demo](http://dfcreative.github.io/piano-keyboard). [![unstable](http://badges.github.io/stability-badges/dist/unstable.svg)](http://github.com/badges/stability-badges)
 
 [![npm install piano-keyboard](https://nodei.co/npm/piano-keyboard.png?mini=true)](https://nodei.co/npm/piano-keyboard/)
 
@@ -6,26 +6,33 @@ Visualize keyboard component in DOM. Just an element and events, nothing more.
 ```js
 var Keyboard = require('piano-keyboard');
 
+
 //init options
 var keyboad = new Keyboard({
 	element: document.querySelector('.my-piano'),
 	context: audioContext,
-	keyboardEvents: true,
-	firstKey: 'c1',
-	numberOfKeys: 61,
-	orientation: 'vertical'
+	range: ['c1', 'c6'],
+	qwerty: true,
+	//multiple: true,
+	//continuous: true
 });
+
 
 //bind events
 keyboard
-	.on('noteon', function (data) {
+	.on('noteOn', function (data) {
 		console.log(data.which, data.volume);
 		this.activeKeys; //list of active keys
 	})
-	.on('noteoff', function (data) {
+	.on('noteOff', function (data) {
 		console.log(data.which, data.volume);
 	});
 
-//pipe to web-midi output (WIP)
-keyboard.pipe(midiOut);
+
+//play keys
+keyboard.noteOn(['c1', 'c2', 'c3']).noteOff(['c1', 'c2']);
+
+
+//pipe to web-midi output
+keyboard.pipe(require('web-midi')('Launchpad'));
 ```
