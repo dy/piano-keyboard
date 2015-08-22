@@ -49,14 +49,32 @@
 		top: 0;
 		right: 0;
 	}
+
+	.reorient {
+		position: absolute;
+		bottom: 0rem;
+		right: 0rem;
+		width: 4.5rem;
+		height: 4.5rem;
+		line-height: 4.5rem;
+		text-align: center;
+		font-weight: bolder;
+		font-size: 2.2rem;
+		z-index: 3;
+		color: rgba(171, 171, 172, .3);
+		cursor: pointer;
+	}
+	.reorient:hover {
+		color: rgb(255, 121, 102);
+	}
 </style>
 
-<a href="https://github.com/dfcreative/piano-keyboard"><img style="position: absolute; top: 0; right: 0; border: 0; z-index:9999" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<div class="reorient" title="Change orientation">🔃</div>
 
 <div class="console"></div>
 <button class="start-button">▸</button>
 
-<div class="keyboard"></div>
+<div class="keyboard piano-keyboard-vertical"></div>
 
 <script src="bundle.js"></script>
 
@@ -74,7 +92,8 @@ function log (content) {
 
 var attack=0.05;      // attack speed
 var release=0.05;   // release speed
-var portamento=0.05;  // portamento/glide speed
+var portamento=0.00;  // portamento/glide speed
+
 
 //create oscillator
 function createOscillator () {
@@ -109,12 +128,10 @@ function getGenerator(id) {
 var kbdEl = document.querySelector('.keyboard');
 var keyboard = new Keyboard({
 	element: kbdEl,
-	numberOfKeys: 12,
-	firstKey: 'c4',
-	keyboardEvents: true,
-	orientation: 'vertical'
+	range: ['c4', 'c#5'],
+	qwerty: true
 });
-keyboard.on('noteon', function (data) {
+keyboard.on('noteOn', function (data) {
 	try {
 		var gen =  getGenerator(data.which);
 		gen[0].frequency.cancelScheduledValues(0);
@@ -125,7 +142,7 @@ keyboard.on('noteon', function (data) {
 		alert(e);
 	}
 });
-keyboard.on('noteoff', function (data) {
+keyboard.on('noteOff', function (data) {
 	try {
 		var gen = getGenerator(data.which);
 		gen[1].gain.cancelScheduledValues(0);
@@ -137,9 +154,8 @@ keyboard.on('noteoff', function (data) {
 
 
 
-// create empty buffer
+//Make splashscreen for iphone
 var startButton = document.querySelector('.start-button');
-
 
 startButton.addEventListener('click', function c() {
 	startButton.removeEventListener('click', c);
@@ -149,4 +165,16 @@ startButton.addEventListener('click', function c() {
 		g[0].start(0);  // Go ahead and start up the oscillator
 	});
 }, false);
+
+
+//Change orientation
+var reorient = document.querySelector('.reorient');
+reorient.addEventListener('click', function () {
+	if (kbdEl.classList.contains('piano-keyboard-vertical')) {
+		kbdEl.classList.remove('piano-keyboard-vertical');
+	} else {
+		kbdEl.classList.add('piano-keyboard-vertical');
+	}
+	keyboard.update();
+});
 </script>
