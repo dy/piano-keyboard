@@ -49,12 +49,32 @@
 		top: 0;
 		right: 0;
 	}
+
+	.reorient {
+		position: absolute;
+		bottom: 0rem;
+		right: 0rem;
+		width: 4rem;
+		height: 4rem;
+		line-height: 4rem;
+		text-align: center;
+		font-weight: bolder;
+		font-size: 2.2rem;
+		z-index: 3;
+		color: lightgray;
+		cursor: pointer;
+	}
+	.reorient:hover {
+		color: black;
+	}
 </style>
+
+<div class="reorient" title="Change orientation">◪</div>
 
 <div class="console"></div>
 <button class="start-button">▸</button>
 
-<div class="keyboard"></div>
+<div class="keyboard piano-keyboard-vertical"></div>
 
 <script src="bundle.js"></script>
 
@@ -72,7 +92,7 @@ function log (content) {
 
 var attack=0.05;      // attack speed
 var release=0.05;   // release speed
-var portamento=0.05;  // portamento/glide speed
+var portamento=0.00;  // portamento/glide speed
 
 
 //create oscillator
@@ -108,7 +128,7 @@ function getGenerator(id) {
 var kbdEl = document.querySelector('.keyboard');
 var keyboard = new Keyboard({
 	element: kbdEl,
-	range: ['c3', 'c4'],
+	range: ['c4', 'c#5'],
 	qwerty: true
 });
 keyboard.on('noteOn', function (data) {
@@ -145,4 +165,16 @@ startButton.addEventListener('click', function c() {
 		g[0].start(0);  // Go ahead and start up the oscillator
 	});
 }, false);
+
+
+//Change orientation
+var reorient = document.querySelector('.reorient');
+reorient.addEventListener('click', function () {
+	if (kbdEl.classList.contains('piano-keyboard-vertical')) {
+		kbdEl.classList.remove('piano-keyboard-vertical');
+	} else {
+		kbdEl.classList.add('piano-keyboard-vertical');
+	}
+	keyboard.update();
+});
 </script>

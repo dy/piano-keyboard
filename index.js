@@ -51,6 +51,7 @@ class Keyboard extends Duplex {
 			self.context = require('audio-context');
 		}
 
+		//to track events
 		self.id = getUid();
 
 		//create number of keys according to the range
@@ -119,19 +120,12 @@ class Keyboard extends Duplex {
 
 		self.element.removeAttribute('disabled');
 
-		//specially sorted array of keys (blacks first)
-		var keys = slice(self.element.querySelectorAll('[data-key]')).sort(function (a, b) {
-			if (a.hasAttribute('data-key-black')) return -1;
-			return 1;
-		});
-
-		//save bounding rects
-		var rects;
-
-		updateRectangles();
+		self.update();
 
 		//keep rectangles updated
-		on(window, 'resize.' + self.id, updateRectangles);
+		on(window, 'resize.' + self.id, function () {
+			self.update();
+		});
 
 		//key element per event
 		on(self.element, 'mousedown.' + self.id + ' touchstart.' + self.id, function (e) {
@@ -167,16 +161,12 @@ class Keyboard extends Duplex {
 			updateKeys([], e);
 		});
 
-		//just update bounding rectangles for keys
-		function updateRectangles () {
-			rects = keys.map(function (el) {
-				return el.getBoundingClientRect();
-			});
-		}
-
 		//just walk the list of touches, for each touch activate the key
 		//pass empty touches list to unbind all
 		function updateKeys (touches, e) {
+			var rects = self.rectangles;
+			var keys = self.keys;
+
 			touches = slice(touches);
 
 			var unbindKeys = slice(self.activeNotes);
@@ -283,6 +273,24 @@ class Keyboard extends Duplex {
 				}
 			});
 		}
+
+		return self;
+	}
+
+
+	/** Update view */
+	update () {
+		var self = this;
+
+		//specially sorted array of keys (blacks first)
+		self.keys = slice(self.element.querySelectorAll('[data-key]')).sort(function (a, b) {
+			if (a.hasAttribute('data-key-black')) return -1;
+			return 1;
+		});
+
+		self.rectangles = self.keys.map(function (el) {
+			return el.getBoundingClientRect();
+		});
 
 		return self;
 	}

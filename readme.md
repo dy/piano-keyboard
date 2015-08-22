@@ -37,4 +37,13 @@ keyboard.noteOff(['c1', 'c2']);
 
 //pipe to web-midi output
 keyboard.pipe(require('web-midi')('Launchpad'));
+
+
+//change orientation
+keyboard.element.classList.add('piano-keyboard-vertical');
+keyboard.element.classList.remove('piano-keyboard-vertical');
+
+
+//call on changing orientation, resize etc
+keyboard.update();
 ```
