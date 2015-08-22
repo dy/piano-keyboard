@@ -23,16 +23,35 @@
 	flex: 1 0 auto;
 	align-self: auto;
 	background: white;
-	box-shadow: inset 0 0 1px 1px gray;
+}
+.piano-keyboard-key-white {
+	border-radius: 4px;
+	box-shadow: inset 0 -2px 0px 1px rgba(87, 85, 65, 0.12);
 }
 .piano-keyboard-key-black {
 	height: 66.6%;
-	background: black;
+	background: rgb(10,10,10);
+	box-shadow: none;
 	position: absolute;
 	top: 0;
 	z-index: 1;
 	right: -33.3%;
 	width: 66.6%;
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
+	box-shadow: inset 0 -1px 0 2px rgba(0,0,0,.1);
+}
+.piano-keyboard-key-black:after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	top: 0;
+	border-bottom: 1.5rem solid rgba(233, 231, 220, 0.06);
+	border-left: .75rem solid rgba(255, 249, 245, 0.1);
+	border-right: .75rem solid rgba(230, 236, 241, 0.12);
+	border-top: none;
 }
 .piano-keyboard-key-c-sharp {
 	right: -20%;
@@ -47,23 +66,33 @@
 	right: -50%;
 }
 .piano-keyboard-key.active {
-	background: rgb(189, 226, 242);
+	background: rgb(151, 206, 240);
 }
-
 
 /** Optional vertical style */
 .piano-keyboard-vertical {
 	flex-direction: column-reverse;
 }
-.piano-keyboard-vertical .piano-keyboard-key {
+.piano-keyboard-vertical .piano-keyboard-key-white {
 	width: 100%;
 	height: auto;
+	box-shadow: inset -2px 0 0px 1px rgba(87, 85, 65, 0.12);
 }
 .piano-keyboard-vertical .piano-keyboard-key-black {
 	width: 66.6%;
 	top: -33.3%;
 	height: 66.6%;
 	right: auto;
+	border-bottom-left-radius: 0;
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+	box-shadow: inset 0 0 0 2px rgba(0,0,0,.1);
+}
+.piano-keyboard-vertical .piano-keyboard-key-black:after {
+	border-right: 1.5rem solid rgba(233, 231, 220, 0.06);
+	border-bottom: .75rem solid rgba(255, 249, 245, 0.1);
+	border-top: .75rem solid rgba(230, 236, 241, 0.12);
+	border-left: none;
 }
 .piano-keyboard-vertical .piano-keyboard-key-c-sharp {
 	top: -20%;
