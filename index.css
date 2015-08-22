@@ -22,24 +22,21 @@
 	order: 0;
 	flex: 1 0 auto;
 	align-self: auto;
-	background: white;
 }
 .piano-keyboard-key-white {
-	border-radius: 4px;
-	box-shadow: inset 0 -2px 0px 1px rgba(87, 85, 65, 0.12);
+	background: rgb(253,253,253);
+	box-shadow: inset 0 0 0px 1px rgba(87, 85, 65, 0.12), inset 0 0 0 4px rgba(255,255,255,1);
 }
 .piano-keyboard-key-black {
-	height: 66.6%;
+	height: 67%;
 	background: rgb(10,10,10);
 	box-shadow: none;
 	position: absolute;
 	top: 0;
 	z-index: 1;
-	right: -33.3%;
-	width: 66.6%;
-	border-bottom-left-radius: 3px;
-	border-bottom-right-radius: 3px;
-	box-shadow: inset 0 -1px 0 2px rgba(0,0,0,.1);
+	right: -33%;
+	width: 67%;
+	box-shadow: inset 0px 0 5px 3px rgba(0, 0, 0, 1);
 }
 .piano-keyboard-key-black:after {
 	content: '';
@@ -57,16 +54,20 @@
 	right: -20%;
 }
 .piano-keyboard-key-d-sharp {
-	right: -46.66%;
+	right: -47%;
 }
 .piano-keyboard-key-f-sharp {
-	right: -16.66%;
+	right: -17%;
 }
 .piano-keyboard-key-a-sharp {
 	right: -50%;
 }
 .piano-keyboard-key.active {
-	background: rgb(151, 206, 240);
+	background: rgb(181, 226, 255);
+	box-shadow: none;
+}
+.piano-keyboard-key.active:after {
+	box-shadow: none;
 }
 
 /** Optional vertical style */
@@ -76,17 +77,12 @@
 .piano-keyboard-vertical .piano-keyboard-key-white {
 	width: 100%;
 	height: auto;
-	box-shadow: inset -2px 0 0px 1px rgba(87, 85, 65, 0.12);
 }
 .piano-keyboard-vertical .piano-keyboard-key-black {
-	width: 66.6%;
-	top: -33.3%;
-	height: 66.6%;
+	width: 67%;
+	top: -33%;
+	height: 67%;
 	right: auto;
-	border-bottom-left-radius: 0;
-	border-top-right-radius: 3px;
-	border-bottom-right-radius: 3px;
-	box-shadow: inset 0 0 0 2px rgba(0,0,0,.1);
 }
 .piano-keyboard-vertical .piano-keyboard-key-black:after {
 	border-right: 1.5rem solid rgba(233, 231, 220, 0.06);
@@ -98,10 +94,10 @@
 	top: -20%;
 }
 .piano-keyboard-vertical .piano-keyboard-key-d-sharp {
-	top: -46.66%;
+	top: -47%;
 }
 .piano-keyboard-vertical .piano-keyboard-key-f-sharp {
-	top: -16.66%;
+	top: -17%;
 }
 .piano-keyboard-vertical .piano-keyboard-key-a-sharp {
 	top: -50%;
