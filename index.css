@@ -24,8 +24,8 @@
 	align-self: auto;
 }
 .piano-keyboard-key-white {
-	background: rgb(253,253,253);
-	box-shadow: inset 0 0 0px 1px rgba(87, 85, 65, 0.12), inset 0 0 0 4px rgba(255,255,255,1);
+	background: rgb(255,255,255);
+	box-shadow: inset 0 0 0px 1px rgba(87, 85, 65, 0.12);
 }
 .piano-keyboard-key-black {
 	height: 67%;
@@ -36,7 +36,6 @@
 	z-index: 1;
 	right: -33%;
 	width: 67%;
-	box-shadow: inset 0px 0 5px 3px rgba(0, 0, 0, 1);
 }
 .piano-keyboard-key-black:after {
 	content: '';

@@ -128,8 +128,7 @@ function getGenerator(id) {
 var kbdEl = document.querySelector('.keyboard');
 var keyboard = new Keyboard({
 	element: kbdEl,
-	range: ['c4', 'c#5'],
-	qwerty: true
+	range: ['c4', 'c#5']
 });
 keyboard.on('noteOn', function (data) {
 	try {

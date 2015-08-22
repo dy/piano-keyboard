@@ -19,7 +19,7 @@ import isBetween from 'mumath/is-between';
 import {findTouch} from 'get-client-xy';
 import slice from 'sliced';
 import {Duplex} from 'stream';
-import QwertyNoteStream from 'midi-qwerty-keys';
+import QwertyKeys from 'midi-qwerty-keys';
 
 
 var doc = document;
@@ -117,6 +117,13 @@ class Keyboard extends Duplex {
 	/** Bind events */
 	enable () {
 		var self = this;
+
+		//get start note number
+		var startWith = self.range[0];
+
+		if (isString(startWith)) {
+			startWith = key.getNumber(startWith);
+		}
 
 		self.element.removeAttribute('disabled');
 
@@ -274,6 +281,26 @@ class Keyboard extends Duplex {
 			});
 		}
 
+
+		//enable keys emulation
+		if (self.qwerty) {
+			self.noteStream = QwertyKeys({
+				mode: self.qwerty === true ? 'piano' : self.qwerty,
+				offset: startWith
+			});
+
+			self.noteStream.on('data', function ([code, note, value]) {
+				//handle noteoffs
+				if (code === 128 || (code === 144 && value === 0)) {
+					self.noteOff(note);
+				}
+				//handle noteons
+				else if (code === 144) {
+					self.noteOn(note, value);
+				}
+			});
+		}
+
 		return self;
 	}
 
@@ -340,6 +367,11 @@ class Keyboard extends Duplex {
 
 		var keyEl = self.element.querySelector('[data-key="' + note + '"]');
 
+		if (!keyEl) {
+			// throw Error(key.getName(note) + ' does not exist');
+			return;
+		}
+
 		//don’t trigger twice
 		if (self.activeNotes.indexOf(keyEl) >= 0) {
 			return self;
@@ -378,6 +410,11 @@ class Keyboard extends Duplex {
 		}
 
 		var keyEl = self.element.querySelector('[data-key="' + note + '"]');
+
+		if (!keyEl) {
+			// throw Error(key.getName(note) + ' does not exist');
+			return;
+		}
 
 		//save active key
 		var keyIdx = self.activeNotes.indexOf(keyEl);
@@ -431,6 +468,9 @@ proto.detune = 0;
 /** Bind keyboard */
 proto.keyboardEvents = false;
 
+
+/** Emulate keys via qwerty */
+proto.qwerty = true;
 
 
 module.exports = Keyboard;
