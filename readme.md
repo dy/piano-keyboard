@@ -30,7 +30,9 @@ keyboard
 
 
 //play keys
-keyboard.noteOn(['c1', 'c2', 'c3']).noteOff(['c1', 'c2']);
+keyboard.noteOn(['c1', 'c2', 'c3']);
+keyboard.activeNotes; // ['c1', 'c2', 'c3']
+keyboard.noteOff(['c1', 'c2']);
 
 
 //pipe to web-midi output

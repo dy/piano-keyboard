@@ -126,9 +126,12 @@ class Keyboard extends Duplex {
 		});
 
 		//save bounding rects
-		var rects = keys.map(function (el) {
-			return el.getBoundingClientRect();
-		});
+		var rects;
+
+		updateRectangles();
+
+		//keep rectangles updated
+		on(window, 'resize.' + self.id, updateRectangles);
 
 		//key element per event
 		on(self.element, 'mousedown.' + self.id + ' touchstart.' + self.id, function (e) {
@@ -160,9 +163,16 @@ class Keyboard extends Duplex {
 			});
 		});
 
-		on(window, 'blur', function (e) {
+		on(window, 'blur.' + self.id, function (e) {
 			updateKeys([], e);
 		});
+
+		//just update bounding rectangles for keys
+		function updateRectangles () {
+			rects = keys.map(function (el) {
+				return el.getBoundingClientRect();
+			});
+		}
 
 		//just walk the list of touches, for each touch activate the key
 		//pass empty touches list to unbind all
@@ -224,6 +234,7 @@ class Keyboard extends Duplex {
 		}
 
 
+		//enable keyboard interactions
 		if (self.keyboardEvents) {
 			delegate(self.element, 'keydown', '[data-key]', function (e) {
 				// console.log(e.which)
@@ -302,8 +313,14 @@ class Keyboard extends Duplex {
 	noteOn (note, value) {
 		var self = this;
 
+		if (value === undefined) {
+			value = 127;
+		}
+
 		if (isArray(note)) {
-			slice(note).forEach(self.noteOn, self);
+			slice(note).forEach(function (note, i) {
+				self.noteOn(note, value[i] !== undefined ? value[i] : value );
+			});
 			return self;
 		}
 
@@ -326,7 +343,7 @@ class Keyboard extends Duplex {
 		//send on note
 		emit(self, 'noteOn', {
 			which: note,
-			value: 127
+			value: value
 		});
 
 		keyEl.classList.add('active');
@@ -337,7 +354,7 @@ class Keyboard extends Duplex {
 
 
 	/** Disable note or all notes */
-	noteOff (note, value) {
+	noteOff (note) {
 		var self = this, keyEl;
 
 		//disable all active notes
@@ -383,6 +400,7 @@ class Keyboard extends Duplex {
 		self.element.setAttribute('disabled', true);
 
 		off(self.element, '.' + self.id);
+		off(window, '.' + self.id);
 
 		return self;
 	}
