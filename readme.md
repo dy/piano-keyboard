@@ -13,8 +13,7 @@ var keyboad = new Keyboard({
 	context: audioContext,
 	range: ['c1', 'c6'],
 	qwerty: true,
-	//multiple: true,
-	//continuous: true
+	a11y: false
 });
 
 

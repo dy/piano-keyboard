@@ -81,7 +81,7 @@ class Keyboard extends Duplex {
 			startWith = key.getNumber(startWith);
 		}
 
-		var srcKeyEl = domify('<div class="piano-keyboard-key" tabindex="1" data-key></div>');
+		var srcKeyEl = domify('<div class="piano-keyboard-key" data-key></div>');
 
 		var prevWhiteKeyEl;
 
@@ -274,10 +274,15 @@ class Keyboard extends Duplex {
 		}
 
 
-		//FIXME: enable a11y
-		if (self.keyboardEvents) {
+		//enable a11y
+		if (self.a11y) {
+			//add tabindexes
+			self.noteElements.forEach(function (noteEl) {
+				noteEl.setAttribute('tabindex', 1);
+			});
+
+			//handle key/tab navigating
 			delegate(self.element, 'keydown', '[data-key]', function (e) {
-				// console.log(e.which)
 				var keyEl = e.delegateTarget;
 				var note = self.parseNote(keyEl);
 
@@ -290,24 +295,21 @@ class Keyboard extends Duplex {
 					self.noteOn(note);
 				}
 
-				//arrows moves key left/right
-				if (e.which === 39) {
-					var nextEl = keyEl.nextSibling;
+				//arrows moves key left&bottom/right&top
+				if (e.which === 39 || e.which === 38) {
+					var nextEl = keyEl.querySelector('[data-key]') || (keyEl.parentNode.matches('[data-key]') && keyEl.parentNode.nextSibling) || keyEl.nextSibling;
 					if (!nextEl) {
 						return;
 					}
 					nextEl.focus();
 				}
-				if (e.which === 37) {
-					var nextEl = keyEl.previousSibling;
-					if (!nextEl) {
+				if (e.which === 37 || e.which === 40) {
+					var prevEl = (keyEl.parentNode.matches('[data-key]') && keyEl.parentNode) || (keyEl.previousSibling && keyEl.previousSibling.querySelector('[data-key]')) || keyEl.previousSibling;
+					if (!prevEl) {
 						return;
 					}
-					nextEl.focus();
+					prevEl.focus();
 				}
-
-
-				//tab or shift + arrow moves for an octave
 			});
 			delegate(self.element, 'keyup', '[data-key]', function (e) {
 				var keyEl = e.delegateTarget;
@@ -443,6 +445,10 @@ class Keyboard extends Duplex {
 		keyEl.classList.add('piano-keyboard-key-active');
 		keyEl.setAttribute('data-key-active', true);
 
+		if (self.a11y) {
+			keyEl.focus();
+		}
+
 		return self;
 	}
 
@@ -529,6 +535,10 @@ proto.keyboardEvents = false;
 
 /** Emulate keys via qwerty */
 proto.qwerty = true;
+
+
+/** Enable focusability, accessibility */
+proto.a11y = true;
 
 
 module.exports = Keyboard;
