@@ -15,7 +15,6 @@ var keyboad = new Keyboard({
 	element: document.querySelector('.my-piano'), //if omitted, element is created
 	context: audioContext, //if omitted the `audio-context` module is used
 	range: ['c4', 'c#6'], //notes range
-	qwerty: true, //qwerty emulation, pass string to specify type: 'grid' or 'piano'.
 	a11y: false //focusable & keyboard interactions
 });
 
@@ -24,7 +23,6 @@ var keyboad = new Keyboard({
 keyboard
 	.on('noteOn', function (data) {
 		console.log(data.which, data.volume);
-		this.activeKeys; //list of active keys
 	})
 	.on('noteOff', function (data) {
 		console.log(data.which, data.volume);
@@ -33,12 +31,16 @@ keyboard
 
 //play notes
 keyboard.noteOn(['a4', 'c2', 'c3']);
-keyboard.activeNotes; // Set(49, 16, 28)
+keyboard.activeNotes; // Set <49, 16, 28>
 keyboard.noteOff(['a4', 'c2']);
 
 
 //pipe to web-midi output
 keyboard.pipe(require('web-midi')('Launchpad'));
+
+
+//pipe qwerty-keys emulation to the keyboard
+var
 
 
 //change orientation to vertical

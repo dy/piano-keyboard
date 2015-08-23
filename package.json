@@ -32,16 +32,16 @@
     "emmy": "^5.3.2",
     "get-client-xy": "^1.0.5",
     "get-uid": "^1.0.1",
-    "midi-qwerty-keys": "0.0.2",
     "mucss": "^1.0.2",
     "mumath": "^1.0.2",
     "mutype": "^0.3.9",
     "piano-key": "^2.0.1",
     "sliced": "0.0.5",
-    "web-midi": "^0.6.0",
     "xtend": "^4.0.0"
   },
   "devDependencies": {
+    "web-midi": "^0.6.0",
+    "midi-qwerty-keys": "0.0.2",
     "babelify": "^6.2.0",
     "audio-context": "^0.1.0",
     "autoprefixer": "^5.2.0",
