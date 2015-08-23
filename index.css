@@ -61,11 +61,8 @@
 .piano-keyboard-key-a-sharp {
 	right: -50%;
 }
-.piano-keyboard-key.active {
+.piano-keyboard-key-active {
 	background: rgb(181, 226, 255);
-	box-shadow: none;
-}
-.piano-keyboard-key.active:after {
 	box-shadow: none;
 }
 

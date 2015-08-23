@@ -118,6 +118,12 @@ class Keyboard extends Duplex {
 	enable () {
 		var self = this;
 
+		//active touches
+		var activeTouches = [];
+
+		//last mouse coords
+		var lastClientXY = [0,0];
+
 		//get start note number
 		var startWith = self.range[0];
 
@@ -134,10 +140,33 @@ class Keyboard extends Duplex {
 			self.update();
 		});
 
-		//key element per event
+		//notes pressed simultaneously
+		self.shiftGroupNotes = [];
+		on(window, 'keydown.' + self.id, function (e) {
+			//shift === 16
+			if (e.which === 16 && !self.isShiftPressed) {
+				self.isShiftPressed = true;
+				self.shiftGroupNotes = slice(self.activeNotes);
+			}
+		});
+		on(window, 'keyup.' + self.id, function (e) {
+			if (e.which === 16) {
+				self.isShiftPressed = false;
+				self.shiftGroupNotes = [];
+
+				//update notes so to only the pressed ones remain
+				updateNotes(activeTouches, null, self.pressedKeys);
+			}
+		});
+
+		//enable note on mouse/touch
+		var isMouseDown = false;
 		on(self.element, 'mousedown.' + self.id + ' touchstart.' + self.id, function (e) {
 			e.preventDefault();
-			updateKeys(e.touches || [0], e);
+
+			isMouseDown = true;
+
+			updateNotes(e.touches || [0], e);
 
 			//don’t bind more than once
 			if (self.isActive) {
@@ -146,42 +175,51 @@ class Keyboard extends Duplex {
 			self.isActive = true;
 
 			on(doc, 'mousemove.' + self.id, function (e) {
+				if (!isMouseDown) return;
+
 				e.preventDefault();
-				updateKeys([0], e);
+				updateNotes([0], e);
 			});
 			on(doc, 'touchmove.' + self.id, function (e) {
 				e.preventDefault();
-				updateKeys(e.touches, e);
+				updateNotes(e.touches, e);
 			});
 			on(doc, 'mouseup.' + self.id + ' mouseleave.' + self.id, function (e) {
 				e.preventDefault();
-				updateKeys([]);
+				updateNotes([]);
+				isMouseDown = false;
 			});
 			on(doc, 'touchend.' + self.id, function (e) {
 				e.preventDefault();
-				// updateKeys(e.changedTouches, e);
-				updateKeys(e.touches, e);
+				// updateNotes(e.changedTouches, e);
+				updateNotes(e.touches, e);
 			});
 		});
 
+		//up keys on blur
 		on(window, 'blur.' + self.id, function (e) {
-			updateKeys([], e);
+			self.shiftGroupNotes = [];
+			updateNotes([], e);
 		});
 
-		//just walk the list of touches, for each touch activate the key
-		//pass empty touches list to unbind all
-		function updateKeys (touches, e) {
+		//walk the list of touches, for each touch activate the key
+		//pass empty touches list to just off all notes
+		function updateNotes (touches, e, ignoreNotes) {
 			var rects = self.rectangles;
-			var keys = self.keys;
+			var notes = self.notes;
+			var noteEls = self.noteElements;
 
 			touches = slice(touches);
 
-			var unbindKeys = slice(self.activeNotes);
-			var bindKeys = [];
+			//save last touches as active
+			activeTouches = touches;
+
+			var notesOff = slice(self.activeNotes);
+			var notesOn = [];
 			var blackTouches = [];
 
-			//for all keys - find ones to turn on and ones to turn off
-			for (var i = 0; i < keys.length; i++) {
+			//for all notes - find ones to turn on and ones to turn off
+			for (var i = 0; i < notes.length; i++) {
 				touches.forEach(function (touchId) {
 					if (touchId.identifier !== undefined) {
 						touchId = touchId.identifier;
@@ -192,38 +230,49 @@ class Keyboard extends Duplex {
 					if (touch) {
 						clientXY = [touch.clientX, touch.clientY]
 					}
-					else {
+					else if (e) {
 						clientXY = [e.clientX, e.clientY]
+						//update last coords
+						lastClientXY = clientXY;
 					}
+					else {
+						clientXY = lastClientXY;
+					}
+
 
 					if (isBetween(clientXY[0], rects[i].left, rects[i].right) && isBetween(clientXY[1], rects[i].top, rects[i].bottom)) {
 						if (blackTouches.indexOf(touchId) >= 0) {
 							return;
 						}
 
-						//add to binds & reserve touch to avoid double-note pressing
-						if (bindKeys.indexOf(keys[i]) < 0) {
-							bindKeys.push(keys[i]);
-							if (keys[i].hasAttribute('data-key-black')) {
+						//add to on notes & reserve touch to avoid double-note pressing
+						if (notesOn.indexOf(notes[i]) < 0) {
+							notesOn.push(notes[i]);
+							if (noteEls[i].hasAttribute('data-key-black')) {
 								blackTouches.push(touchId);
 							}
 						}
 
-						//remove from unbinds
-						var unbindIdx = unbindKeys.indexOf(keys[i]);
-						if (unbindIdx >= 0) {
-							unbindKeys.splice(unbindIdx, 1);
+						//remove from planned notes to off
+						var noteOffIdx = notesOff.indexOf(notes[i]);
+						if (noteOffIdx >= 0) {
+							notesOff.splice(noteOffIdx, 1);
 						}
 
 					}
 				});
 			}
 
-			//unbind/bind keys
-			unbindKeys.forEach(self.noteOff, self);
-			bindKeys.forEach(self.noteOn, self);
+			//unbind/bind notes
+			if (ignoreNotes) {
+				notesOff = notesOff.filter(function (note) {
+					return !ignoreNotes.has(note);
+				});
+			}
+			notesOff.forEach(self.noteOff, self);
+			notesOn.forEach(self.noteOn, self);
 
-			//check whether there are left keys
+			//check whether there are notes left
 			if (!self.activeNotes.length) {
 				self.isActive = false;
 				off(doc, '.' + self.id);
@@ -231,7 +280,7 @@ class Keyboard extends Duplex {
 		}
 
 
-		//enable keyboard interactions
+		//FIXME: enable a11y
 		if (self.keyboardEvents) {
 			delegate(self.element, 'keydown', '[data-key]', function (e) {
 				// console.log(e.which)
@@ -283,6 +332,7 @@ class Keyboard extends Duplex {
 
 
 		//enable keys emulation
+		self.pressedKeys = new Set();
 		if (self.qwerty) {
 			self.noteStream = QwertyKeys({
 				mode: self.qwerty === true ? 'piano' : self.qwerty,
@@ -292,10 +342,12 @@ class Keyboard extends Duplex {
 			self.noteStream.on('data', function ([code, note, value]) {
 				//handle noteoffs
 				if (code === 128 || (code === 144 && value === 0)) {
+					self.pressedKeys.delete(note);
 					self.noteOff(note);
 				}
 				//handle noteons
 				else if (code === 144) {
+					self.pressedKeys.add(note);
 					self.noteOn(note, value);
 				}
 			});
@@ -310,14 +362,16 @@ class Keyboard extends Duplex {
 		var self = this;
 
 		//specially sorted array of keys (blacks first)
-		self.keys = slice(self.element.querySelectorAll('[data-key]')).sort(function (a, b) {
+		self.noteElements = slice(self.element.querySelectorAll('[data-key]')).sort(function (a, b) {
 			if (a.hasAttribute('data-key-black')) return -1;
 			return 1;
 		});
 
-		self.rectangles = self.keys.map(function (el) {
+		self.rectangles = self.noteElements.map(function (el) {
 			return el.getBoundingClientRect();
 		});
+
+		self.notes = self.noteElements.map(self.parseNote);
 
 		return self;
 	}
@@ -373,12 +427,17 @@ class Keyboard extends Duplex {
 		}
 
 		//don’t trigger twice
-		if (self.activeNotes.indexOf(keyEl) >= 0) {
+		if (self.activeNotes.indexOf(note) >= 0) {
 			return self;
 		}
 
 		//save active key
-		self.activeNotes.push(keyEl);
+		self.activeNotes.push(note);
+
+		//save shift group, if any
+		if (self.isShiftPressed) {
+			self.shiftGroupNotes.push(note);
+		}
 
 		//send on note
 		emit(self, 'noteOn', {
@@ -386,7 +445,8 @@ class Keyboard extends Duplex {
 			value: value
 		});
 
-		keyEl.classList.add('active');
+		//reflect classes
+		keyEl.classList.add('piano-keyboard-key-active');
 		keyEl.setAttribute('data-key-active', true);
 
 		return self;
@@ -416,8 +476,13 @@ class Keyboard extends Duplex {
 			return;
 		}
 
+		//ignore key if it is in the shift group
+		if (self.shiftGroupNotes.indexOf(note) >= 0) {
+			return;
+		}
+
 		//save active key
-		var keyIdx = self.activeNotes.indexOf(keyEl);
+		var keyIdx = self.activeNotes.indexOf(note);
 		if (keyIdx < 0) {
 			return self;
 		}
@@ -431,7 +496,7 @@ class Keyboard extends Duplex {
 			value: 0
 		});
 
-		keyEl.classList.remove('active');
+		keyEl.classList.remove('piano-keyboard-key-active');
 		keyEl.removeAttribute('data-key-active');
 
 		return self;
