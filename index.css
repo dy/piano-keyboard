@@ -44,9 +44,9 @@
 	bottom: 0;
 	right: 0;
 	top: 0;
-	border-bottom: 1.5rem solid rgba(233, 231, 220, 0.06);
-	border-left: .75rem solid rgba(255, 249, 245, 0.1);
-	border-right: .75rem solid rgba(230, 236, 241, 0.12);
+	border-bottom: 1.2rem solid rgba(233, 231, 220, 0.06);
+	border-left: .6rem solid rgba(255, 249, 245, 0.1);
+	border-right: .6rem solid rgba(230, 236, 241, 0.12);
 	border-top: none;
 }
 .piano-keyboard-key-c-sharp {
@@ -81,9 +81,9 @@
 	right: auto;
 }
 .piano-keyboard-vertical .piano-keyboard-key-black:after {
-	border-right: 1.5rem solid rgba(233, 231, 220, 0.06);
-	border-bottom: .75rem solid rgba(255, 249, 245, 0.1);
-	border-top: .75rem solid rgba(230, 236, 241, 0.12);
+	border-right: 1.2rem solid rgba(233, 231, 220, 0.06);
+	border-bottom: .6rem solid rgba(255, 249, 245, 0.1);
+	border-top: .6rem solid rgba(230, 236, 241, 0.12);
 	border-left: none;
 }
 .piano-keyboard-vertical .piano-keyboard-key-c-sharp {

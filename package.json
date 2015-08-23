@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "watch": "watchify -t babelify -r ./index.js:piano-keyboard -r piano-key -r audio-context -d -o bundle.js",
-    "watch-demo": "watchify -r ./index.js:piano-keyboard -r piano-key -r audio-context -d -o _demo/bundle.js",
+    "watch-demo": "watchify -t babelify -r ./index.js:piano-keyboard -r piano-key -r audio-context -d -o _demo/bundle.js",
     "build": "npm run build-js && npm run build-css && npm run build-html",
     "build-js": "browserify -t babelify -r ./index.js:piano-keyboard -r piano-key -r audio-context | uglifyjs -c -- > _demo/bundle.js",
     "build-css": "postcss -u autoprefixer -u cssnano index.css -o _demo/index.css ",

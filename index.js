@@ -221,7 +221,13 @@ class Keyboard extends Duplex {
 			//save last touches as active
 			activeTouches = touches;
 
-			var notesOff = new Set(self.activeNotes);
+			//FIXME: Safari doesn't know what's that
+			// var notesOff = new Set(self.activeNotes);
+			var notesOff = new Set();
+			self.activeNotes.forEach(function (note) {
+				notesOff.add(note);
+			});
+
 			var notesOn = new Set();
 			var blackTouches = new Set();
 
@@ -490,7 +496,6 @@ class Keyboard extends Duplex {
 			self.activeNotes.forEach(self.noteOff, self);
 			return self;
 		}
-
 		if (isArray(note)) {
 			slice(note).forEach(function (note, i) {
 				self.noteOff(note);
