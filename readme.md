@@ -13,8 +13,7 @@ var keyboad = new Keyboard({
 	context: audioContext,
 	range: ['c1', 'c6'],
 	qwerty: true, //qwerty emulation, pass string to specify type: 'grid' or 'piano'.
-	a11y: false, //focusable & keyboard interactions
-	midi: false //stream to/from midi
+	a11y: false //focusable & keyboard interactions
 });
 
 
@@ -30,16 +29,16 @@ keyboard
 
 
 //play keys
-keyboard.noteOn(['c1', 'c2', 'c3']);
-keyboard.activeNotes; // ['c1', 'c2', 'c3']
-keyboard.noteOff(['c1', 'c2']);
+keyboard.noteOn(['a4', 'c2', 'c3']);
+keyboard.activeNotes; // Set(49, 16, 28)
+keyboard.noteOff(['a4', 'c2']);
 
 
 //pipe to web-midi output
 keyboard.pipe(require('web-midi')('Launchpad'));
 
 
-//change orientation
+//change orientation to vertical
 keyboard.element.classList.add('piano-keyboard-vertical');
 keyboard.element.classList.remove('piano-keyboard-vertical');
 

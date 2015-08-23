@@ -133,6 +133,9 @@ class Keyboard extends Duplex {
 
 		self.element.removeAttribute('disabled');
 
+		//whether to block noteOn/noteOff
+		self.isBlocked = false;
+
 		self.update();
 
 		//keep rectangles updated
@@ -159,8 +162,11 @@ class Keyboard extends Duplex {
 
 		//enable note on mouse/touch
 		var isMouseDown = false;
+
 		on(self.element, 'mousedown.' + self.id + ' touchstart.' + self.id, function (e) {
 			e.preventDefault();
+
+			self.isBlocked = false;
 
 			isMouseDown = true;
 
@@ -185,6 +191,7 @@ class Keyboard extends Duplex {
 			on(doc, 'mouseup.' + self.id + ' mouseleave.' + self.id, function (e) {
 				e.preventDefault();
 				updateNotes([]);
+				self.isBlocked = false;
 				isMouseDown = false;
 			});
 			on(doc, 'touchend.' + self.id, function (e) {
@@ -196,6 +203,8 @@ class Keyboard extends Duplex {
 
 		//up keys on blur
 		on(window, 'blur.' + self.id, function (e) {
+			self.isBlocked = false;
+
 			self.shiftGroupNotes = null;
 			updateNotes([], e);
 		});
@@ -312,6 +321,8 @@ class Keyboard extends Duplex {
 				}
 			});
 			delegate(self.element, 'keyup', '[data-key]', function (e) {
+				self.isBlocked = false;
+
 				var keyEl = e.delegateTarget;
 				var note = self.parseNote(keyEl);
 
@@ -398,6 +409,8 @@ class Keyboard extends Duplex {
 	noteOn (note, value) {
 		var self = this;
 
+		if (self.isBlocked) return self;
+
 		if (value === undefined) {
 			value = 127;
 		}
@@ -422,6 +435,24 @@ class Keyboard extends Duplex {
 			return;
 		}
 
+		//save shift group, if any
+		if (self.shiftGroupNotes) {
+			//but if shiftGroup cointains the note - force trigger rather than on
+			if (self.shiftGroupNotes.has(note)) {
+				self.shiftGroupNotes.delete(note);
+				self.noteOff(note);
+				self.isBlocked = true;
+
+				//focus on disabled note
+				if (self.a11y) {
+					keyEl.focus();
+				}
+				return self;
+			}
+			self.shiftGroupNotes.add(note);
+			self.isBlocked = true;
+		}
+
 		//don’t trigger twice
 		if (self.activeNotes.has(note)) {
 			return self;
@@ -429,11 +460,6 @@ class Keyboard extends Duplex {
 
 		//save active key
 		self.activeNotes.add(note);
-
-		//save shift group, if any
-		if (self.shiftGroupNotes) {
-			self.shiftGroupNotes.add(note);
-		}
 
 		//send on note
 		emit(self, 'noteOn', {
@@ -457,9 +483,18 @@ class Keyboard extends Duplex {
 	noteOff (note) {
 		var self = this, keyEl;
 
+		if (self.isBlocked) return self;
+
 		//disable all active notes
 		if (note === undefined) {
 			self.activeNotes.forEach(self.noteOff, self);
+			return self;
+		}
+
+		if (isArray(note)) {
+			slice(note).forEach(function (note, i) {
+				self.noteOff(note);
+			});
 			return self;
 		}
 
@@ -476,13 +511,13 @@ class Keyboard extends Duplex {
 			return self;
 		}
 
-		//ignore key if it is in the shift group
-		if (self.shiftGroupNotes && self.shiftGroupNotes.has(note)) {
+		//ignore inactive key
+		if (!self.activeNotes.has(note)) {
 			return self;
 		}
 
-		//save active key
-		if (!self.activeNotes.has(note)) {
+		//ignore key if it is in the shift group
+		if (self.shiftGroupNotes && self.shiftGroupNotes.has(note)) {
 			return self;
 		}
 
