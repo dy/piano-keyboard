@@ -10,6 +10,8 @@
 <meta name="contact" content="df.creative@gmail.com" />
 <meta http-equiv="content-language" content="en" />
 
+<script type="text/javascript" src="https://cdn.polyfill.io/v1/polyfill.js?features=default,Set,Element.prototype.matches"></script>
+
 <link rel="stylesheet" type="text/css" href="./index.css"/>
 
 <style>
@@ -52,7 +54,7 @@
 
 	.reorient {
 		position: absolute;
-		bottom: 0rem;
+		top: 0rem;
 		right: 0rem;
 		width: 4.5rem;
 		height: 4.5rem;
@@ -69,7 +71,7 @@
 	}
 </style>
 
-<div class="reorient" title="Change orientation">🔃</div>
+<div class="reorient" title="Change orientation">↻</div>
 
 <div class="console"></div>
 <button class="start-button">▸</button>
@@ -129,6 +131,7 @@ var kbdEl = document.querySelector('.keyboard');
 var keyboard = new Keyboard({
 	element: kbdEl,
 	range: ['c4', 'c#5'],
+	a11y: true,
 	qwerty: true
 });
 keyboard.on('noteOn', function (data) {
