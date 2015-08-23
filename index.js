@@ -57,8 +57,8 @@ class Keyboard extends Duplex {
 		//create number of keys according to the range
 		self.createKeys(self.range);
 
-		//stack of pressed keys
-		self.activeNotes = [];
+		//set of pressed keys
+		self.activeNotes = new Set();
 
 		self.enable();
 	}
@@ -141,18 +141,16 @@ class Keyboard extends Duplex {
 		});
 
 		//notes pressed simultaneously
-		self.shiftGroupNotes = [];
+		self.shiftGroupNotes = null;
 		on(window, 'keydown.' + self.id, function (e) {
 			//shift === 16
 			if (e.which === 16 && !self.isShiftPressed) {
-				self.isShiftPressed = true;
-				self.shiftGroupNotes = slice(self.activeNotes);
+				self.shiftGroupNotes = new Set(self.activeNotes);
 			}
 		});
 		on(window, 'keyup.' + self.id, function (e) {
 			if (e.which === 16) {
-				self.isShiftPressed = false;
-				self.shiftGroupNotes = [];
+				self.shiftGroupNotes = null;
 
 				//update notes so to only the pressed ones remain
 				updateNotes(activeTouches, null, self.pressedKeys);
@@ -198,7 +196,7 @@ class Keyboard extends Duplex {
 
 		//up keys on blur
 		on(window, 'blur.' + self.id, function (e) {
-			self.shiftGroupNotes = [];
+			self.shiftGroupNotes = null;
 			updateNotes([], e);
 		});
 
@@ -214,9 +212,9 @@ class Keyboard extends Duplex {
 			//save last touches as active
 			activeTouches = touches;
 
-			var notesOff = slice(self.activeNotes);
-			var notesOn = [];
-			var blackTouches = [];
+			var notesOff = new Set(self.activeNotes);
+			var notesOn = new Set();
+			var blackTouches = new Set();
 
 			//for all notes - find ones to turn on and ones to turn off
 			for (var i = 0; i < notes.length; i++) {
@@ -241,39 +239,35 @@ class Keyboard extends Duplex {
 
 
 					if (isBetween(clientXY[0], rects[i].left, rects[i].right) && isBetween(clientXY[1], rects[i].top, rects[i].bottom)) {
-						if (blackTouches.indexOf(touchId) >= 0) {
+						if (blackTouches.has(touchId)) {
 							return;
 						}
 
 						//add to on notes & reserve touch to avoid double-note pressing
-						if (notesOn.indexOf(notes[i]) < 0) {
-							notesOn.push(notes[i]);
+						if (!notesOn.has(notes[i])) {
+							notesOn.add(notes[i]);
 							if (noteEls[i].hasAttribute('data-key-black')) {
-								blackTouches.push(touchId);
+								blackTouches.add(touchId);
 							}
 						}
 
 						//remove from planned notes to off
-						var noteOffIdx = notesOff.indexOf(notes[i]);
-						if (noteOffIdx >= 0) {
-							notesOff.splice(noteOffIdx, 1);
-						}
-
+						notesOff.delete(notes[i]);
 					}
 				});
 			}
 
 			//unbind/bind notes
 			if (ignoreNotes) {
-				notesOff = notesOff.filter(function (note) {
-					return !ignoreNotes.has(note);
-				});
+				ignoreNotes.forEach(function (note) {
+					notesOff.delete(note)
+				})
 			}
 			notesOff.forEach(self.noteOff, self);
 			notesOn.forEach(self.noteOn, self);
 
 			//check whether there are notes left
-			if (!self.activeNotes.length) {
+			if (!self.activeNotes.size) {
 				self.isActive = false;
 				off(doc, '.' + self.id);
 			}
@@ -427,16 +421,16 @@ class Keyboard extends Duplex {
 		}
 
 		//don’t trigger twice
-		if (self.activeNotes.indexOf(note) >= 0) {
+		if (self.activeNotes.has(note)) {
 			return self;
 		}
 
 		//save active key
-		self.activeNotes.push(note);
+		self.activeNotes.add(note);
 
 		//save shift group, if any
-		if (self.isShiftPressed) {
-			self.shiftGroupNotes.push(note);
+		if (self.shiftGroupNotes) {
+			self.shiftGroupNotes.add(note);
 		}
 
 		//send on note
@@ -459,7 +453,7 @@ class Keyboard extends Duplex {
 
 		//disable all active notes
 		if (note === undefined) {
-			slice(self.activeNotes).forEach(self.noteOff, self);
+			self.activeNotes.forEach(self.noteOff, self);
 			return self;
 		}
 
@@ -473,22 +467,21 @@ class Keyboard extends Duplex {
 
 		if (!keyEl) {
 			// throw Error(key.getName(note) + ' does not exist');
-			return;
+			return self;
 		}
 
 		//ignore key if it is in the shift group
-		if (self.shiftGroupNotes.indexOf(note) >= 0) {
-			return;
+		if (self.shiftGroupNotes && self.shiftGroupNotes.has(note)) {
+			return self;
 		}
 
 		//save active key
-		var keyIdx = self.activeNotes.indexOf(note);
-		if (keyIdx < 0) {
+		if (!self.activeNotes.has(note)) {
 			return self;
 		}
 
 		//forget key
-		self.activeNotes.splice(keyIdx, 1);
+		self.activeNotes.delete(note);
 
 		//send off note
 		emit(self, 'noteOff', {
