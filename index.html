@@ -10,8 +10,6 @@
 <meta name="contact" content="df.creative@gmail.com" />
 <meta http-equiv="content-language" content="en" />
 
-<script type="text/javascript" src="https://cdn.polyfill.io/v1/polyfill.js?features=default,Set,Element.prototype.matches"></script>
-
 <link rel="stylesheet" type="text/css" href="./index.css"/>
 
 <style>
@@ -25,6 +23,7 @@
 	.keyboard {
 		height: 100%;
 		width: 100%;
+		background: red;
 	}
 
 	.start-button {
@@ -39,7 +38,7 @@
 		width: 100%;
 		border: 0;
 		text-align: center;
-		z-index: 999;
+		z-index: 998;
 		font-size: 12rem;
 		text-shadow: 0 1px 2rem white;
 	}
@@ -78,6 +77,8 @@
 
 <div class="keyboard piano-keyboard-vertical"></div>
 
+<script type="text/javascript" src="https://cdn.polyfill.io/v1/polyfill.js?features=default,Set,Element.prototype.matches"></script>
+
 <script src="bundle.js"></script>
 
 <script type="text/javascript">
@@ -90,6 +91,8 @@ var consoleEl = document.querySelector('.console');
 function log (content) {
 	consoleEl.innerHTML = content;
 }
+
+window.onerror = log;
 
 
 var attack=0.05;      // attack speed
@@ -154,7 +157,6 @@ keyboard.on('noteOff', function (data) {
 		alert(e);
 	}
 });
-
 
 
 //Make splashscreen for iphone
