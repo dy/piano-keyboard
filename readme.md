@@ -12,8 +12,9 @@ var keyboad = new Keyboard({
 	element: document.querySelector('.my-piano'),
 	context: audioContext,
 	range: ['c1', 'c6'],
-	qwerty: true,
-	a11y: false
+	qwerty: true, //qwerty emulation, pass string to specify type: 'grid' or 'piano'.
+	a11y: false, //focusable & keyboard interactions
+	midi: false //stream to/from midi
 });
 
 

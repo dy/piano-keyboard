@@ -328,8 +328,8 @@ class Keyboard extends Duplex {
 
 
 		//enable keys emulation
-		self.pressedKeys = new Set();
 		if (self.qwerty) {
+			self.pressedKeys = new Set();
 			self.noteStream = QwertyKeys({
 				mode: self.qwerty === true ? 'piano' : self.qwerty,
 				offset: startWith
@@ -534,11 +534,11 @@ proto.keyboardEvents = false;
 
 
 /** Emulate keys via qwerty */
-proto.qwerty = true;
+proto.qwerty = false;
 
 
 /** Enable focusability, accessibility */
-proto.a11y = true;
+proto.a11y = false;
 
 
 module.exports = Keyboard;
