@@ -4,10 +4,10 @@
   "description": "Piano keyboard component",
   "main": "index.js",
   "scripts": {
-    "watch": "watchify -t babelify -r ./index.js:piano-keyboard -r piano-key -r audio-context -d -o bundle.js",
-    "watch-demo": "watchify -t babelify -r ./index.js:piano-keyboard -r piano-key -r audio-context -d -o _demo/bundle.js",
+    "watch": "watchify -t babelify -r midi-qwerty-keys -r ./index.js:piano-keyboard -r piano-key -r audio-context -d -o bundle.js",
+    "watch-demo": "watchify -t babelify -r midi-qwerty-keys -r ./index.js:piano-keyboard -r piano-key -r audio-context -d -o _demo/bundle.js",
     "build": "npm run build-js && npm run build-css && npm run build-html",
-    "build-js": "browserify -t babelify -r ./index.js:piano-keyboard -r piano-key -r audio-context | uglifyjs -c -- > _demo/bundle.js",
+    "build-js": "browserify -t babelify -r midi-qwerty-keys -r ./index.js:piano-keyboard -r piano-key -r audio-context | uglifyjs -c -- > _demo/bundle.js",
     "build-css": "postcss -u autoprefixer -u cssnano index.css -o _demo/index.css ",
     "build-html": "cp test.html _demo/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -19,7 +19,6 @@ import isBetween from 'mumath/is-between';
 import {findTouch} from 'get-client-xy';
 import slice from 'sliced';
 import {Duplex} from 'stream';
-import QwertyKeys from 'midi-qwerty-keys';
 
 
 var doc = document;
@@ -32,7 +31,9 @@ var doc = document;
  */
 class Keyboard extends Duplex {
 	constructor (options) {
-		super();
+		super({
+			objectMode: true
+		});
 
 		var self = this;
 
@@ -54,13 +55,52 @@ class Keyboard extends Duplex {
 		//to track events
 		self.id = getUid();
 
+		//transform range to numbers
+		self.range = self.range.map(function (value) {
+			return isString(value) ? key.getNumber(value) : value
+		});
+
 		//create number of keys according to the range
 		self.createKeys(self.range);
 
-		//set of pressed keys
+		//set of active notes
 		self.activeNotes = new Set();
 
+		//set of pressed midi-keys, to manage shift mode
+		self._pressedKeys = new Set();
+
 		self.enable();
+	}
+
+
+	/**
+	 * Read is called whenever the consumer wants to read more
+	 */
+	_read () {
+		var self = this;
+
+		self.push();
+	}
+
+
+	/**
+	 * Write is called whenever there is a note to display
+	 */
+	_write ([code, note, value], encoding, callback) {
+		var self = this;
+
+		//handle noteoffs
+		if (code === 128 || (code === 144 && value === 0)) {
+			self._pressedKeys.delete(note);
+			self.noteOff(note);
+		}
+		//handle noteons
+		else if (code === 144) {
+			self._pressedKeys.add(note);
+			self.noteOn(note, value);
+		}
+
+		callback();
 	}
 
 
@@ -70,16 +110,9 @@ class Keyboard extends Duplex {
 	createKeys (range) {
 		var self = this;
 
-		var number = Math.abs(
-			(isString(self.range[1]) ? key.getNumber(self.range[1]) : self.range[1]) -
-			(isString(self.range[0]) ? key.getNumber(self.range[0]) : self.range[0])
-		);
+		var number = Math.abs(self.range[1] - self.range[0]);
 
 		var startWith = self.range[0];
-
-		if (isString(startWith)) {
-			startWith = key.getNumber(startWith);
-		}
 
 		var srcKeyEl = domify('<div class="piano-keyboard-key" data-key></div>');
 
@@ -126,10 +159,6 @@ class Keyboard extends Duplex {
 
 		//get start note number
 		var startWith = self.range[0];
-
-		if (isString(startWith)) {
-			startWith = key.getNumber(startWith);
-		}
 
 		self.element.removeAttribute('disabled');
 
@@ -343,29 +372,6 @@ class Keyboard extends Duplex {
 			});
 		}
 
-
-		//enable keys emulation
-		if (self.qwerty) {
-			self.pressedKeys = new Set();
-			self.noteStream = QwertyKeys({
-				mode: self.qwerty === true ? 'piano' : self.qwerty,
-				offset: startWith
-			});
-
-			self.noteStream.on('data', function ([code, note, value]) {
-				//handle noteoffs
-				if (code === 128 || (code === 144 && value === 0)) {
-					self.pressedKeys.delete(note);
-					self.noteOff(note);
-				}
-				//handle noteons
-				else if (code === 144) {
-					self.pressedKeys.add(note);
-					self.noteOn(note, value);
-				}
-			});
-		}
-
 		return self;
 	}
 
@@ -571,10 +577,6 @@ proto.detune = 0;
 
 /** Bind keyboard */
 proto.keyboardEvents = false;
-
-
-/** Emulate keys via qwerty */
-proto.qwerty = false;
 
 
 /** Enable focusability, accessibility */

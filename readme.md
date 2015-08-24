@@ -1,63 +1,40 @@
 Visualize piano in DOM. [Demo](http://dfcreative.github.io/piano-keyboard).
 
-[![unstable](http://badges.github.io/stability-badges/dist/unstable.svg)](http://github.com/badges/stability-badges)
-
-
 [![npm install piano-keyboard](https://nodei.co/npm/piano-keyboard.png?mini=true)](https://nodei.co/npm/piano-keyboard/)
 
 
 ```js
 var Keyboard = require('piano-keyboard');
 
-
-//init with options
+//options
 var keyboad = new Keyboard({
 	element: document.querySelector('.my-piano'), //if omitted, element is created
 	context: audioContext, //if omitted the `audio-context` module is used
-	range: ['c4', 'c#6'], //notes range
+	range: ['c4', 'c#6'], //notes range, numbers or names
 	a11y: false //focusable & keyboard interactions
 });
 
-
-//bind events
+//events
 keyboard
-	.on('noteOn', function (data) {
-		console.log(data.which, data.volume);
-	})
-	.on('noteOff', function (data) {
-		console.log(data.which, data.volume);
-	});
+	.on('noteOn', function ({which, volume}) {})
+	.on('noteOff', function ({which, volume}) {});
 
-
-//play notes
-keyboard.noteOn(['a4', 'c2', 'c3']);
+//API
+keyboard.noteOn(['a4', 'c2', 'c3'], [127, 80, 80]);
 keyboard.activeNotes; // Set <49, 16, 28>
 keyboard.noteOff(['a4', 'c2']);
 
-
-//pipe to web-midi output
+//pipe to midi
 keyboard.pipe(require('web-midi')('Launchpad'));
 
-
-//pipe qwerty-keys emulation to the keyboard
-var
-
+//pipe from midi
+var midiIn = require('midi-qwerty-keys')({ offset: keyboard.range[0] });
+midiIn.pipe(keyboard);
 
 //change orientation to vertical
 keyboard.element.classList.add('piano-keyboard-vertical');
 keyboard.element.classList.remove('piano-keyboard-vertical');
 
-
 //call on changing orientation, resize etc
 keyboard.update();
-```
-
-## Notes
-
-Don't forget to include `index.css`.
-
-To ensure work:
-
-```html
-<script type="text/javascript" src="https://cdn.polyfill.io/v1/polyfill.js?features=default,Set,Element.prototype.matches"></script>
 ```
