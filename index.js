@@ -576,4 +576,4 @@ proto.range = ['C3', 'C4'];
 proto.a11y = false;
 
 
-module.exports = Keyboard;
+export default Keyboard;
