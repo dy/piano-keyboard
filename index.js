@@ -74,12 +74,11 @@ class Keyboard extends Duplex {
 
 
 	/**
-	 * Read is called whenever the consumer wants to read more
+	 * Read is called whenever the consumer wants to read more.
+	 * To form a stack of data to read, call self.push(chunk)
 	 */
 	_read () {
-		var self = this;
-
-		self.push();
+		//FIXME: it is considered to be always active right now, so if there is a case when it needs to be stopped - implement it
 	}
 
 
@@ -479,6 +478,9 @@ class Keyboard extends Duplex {
 			value: value
 		});
 
+		//send to stream
+		self.push([144, note, value]);
+
 		//reflect classes
 		keyEl.classList.add('piano-keyboard-key-active');
 		keyEl.setAttribute('data-key-active', true);
@@ -567,17 +569,8 @@ class Keyboard extends Duplex {
 var proto = Keyboard.prototype;
 
 
-/** Keys range to display */
+/** Default notes range to display */
 proto.range = ['C3', 'C4'];
-
-
-/** Use to detune frequency */
-proto.detune = 0;
-
-
-/** Bind keyboard */
-proto.keyboardEvents = false;
-
 
 /** Enable focusability, accessibility */
 proto.a11y = false;
