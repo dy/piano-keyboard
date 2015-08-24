@@ -1,6 +1,6 @@
 {
   "name": "piano-keyboard",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Piano keyboard component",
   "main": "index.js",
   "scripts": {
