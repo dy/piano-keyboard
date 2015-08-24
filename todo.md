@@ -1,5 +1,3 @@
-* Make qwerty-keys a separate pipe
-* pipe to web-midi output and input
+* test out real midi in/out
 * make keys swiper, not presser, as a seaboard - by ctrl?
-
 * speed up iphone - it is too slow
