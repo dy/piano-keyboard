@@ -23,7 +23,6 @@
 	.keyboard {
 		height: 100%;
 		width: 100%;
-		background: red;
 	}
 
 	.start-button {
@@ -55,9 +54,9 @@
 		position: absolute;
 		top: 0rem;
 		right: 0rem;
-		width: 4.5rem;
-		height: 4.5rem;
-		line-height: 4.5rem;
+		width: 3.8rem;
+		height: 3.8rem;
+		line-height: 3.8rem;
 		text-align: center;
 		font-weight: bolder;
 		font-size: 2.2rem;
@@ -86,6 +85,7 @@
 var context = require('audio-context');
 var Keyboard = require('piano-keyboard');
 var key = require('piano-key');
+var QwertyStream = require('midi-qwerty-keys');
 
 var consoleEl = document.querySelector('.console');
 function log (content) {
@@ -157,6 +157,14 @@ keyboard.on('noteOff', function (data) {
 		alert(e);
 	}
 });
+
+
+//create qwerty stream
+var qwertyStream = QwertyStream({
+	mode: 'piano',
+	offset: keyboard.range[0]
+});
+qwertyStream.pipe(keyboard);
 
 
 //Make splashscreen for iphone
