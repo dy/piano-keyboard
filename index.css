@@ -1,6 +1,6 @@
 .piano-keyboard {
-	width: 61rem;
-	height: 8rem;
+	height: 5rem;
+	width: 10rem;
 	cursor: pointer;
 	position: relative;
 	-webkit-tap-highlight-color: transparent;

@@ -25,7 +25,7 @@ var doc = document;
 
 
 /**
- * Takes element, context and options
+ * Takes element and options
  *
  * @constructor
  */
@@ -46,11 +46,6 @@ class Keyboard extends Duplex {
 
 		selection.disable(self.element);
 		self.element.classList.add('piano-keyboard');
-
-		//ensure context
-		if (!self.context) {
-			self.context = require('audio-context');
-		}
 
 		//to track events
 		self.id = getUid();
