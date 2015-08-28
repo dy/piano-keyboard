@@ -43,3 +43,7 @@ keyboard.element.classList.remove('piano-keyboard-vertical');
 //call on changing orientation, resize etc
 keyboard.update();
 ```
+
+## Analogs
+
+* [qwerty-hancock](https://github.com/stuartmemo/qwerty-hancock)
