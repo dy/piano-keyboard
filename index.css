@@ -29,7 +29,7 @@
 }
 .piano-keyboard-key-black {
 	height: 67%;
-	background: rgb(10,10,10);
+	background: rgb(12,11,10);
 	box-shadow: none;
 	position: absolute;
 	top: 0;
@@ -44,7 +44,7 @@
 	bottom: 0;
 	right: 0;
 	top: 0;
-	border-bottom: 1.4rem solid rgba(233, 231, 220, 0.06);
+	border-bottom: 1.4rem solid rgba(220, 230, 231, 0.06);
 	border-left: .35rem solid rgba(255, 249, 245, 0.12);
 	border-right: .35rem solid rgba(230, 236, 241, 0.16);
 	border-top: none;

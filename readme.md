@@ -15,8 +15,8 @@ var keyboad = new Keyboard({
 
 //events
 keyboard
-	.on('noteOn', function ({which, volume}) {})
-	.on('noteOff', function ({which, volume}) {});
+	.on('noteOn', function ({which, volume, target}) {})
+	.on('noteOff', function ({which, volume, target}) {});
 
 //API
 keyboard.noteOn(['a4', 'c2', 'c3'], [127, 80, 80]);

@@ -469,6 +469,7 @@ class Keyboard extends Duplex {
 
 		//send on note
 		emit(self, 'noteOn', {
+			target: keyEl,
 			which: note,
 			value: value
 		});
@@ -534,6 +535,7 @@ class Keyboard extends Duplex {
 
 		//send off note
 		emit(self, 'noteOff', {
+			target: keyEl,
 			which: note,
 			value: 0
 		});
